@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Amazon Lead Finder — By Ezuvex</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EFF9F4;
+  --bg2:#E0F5EC;
+  --dark:#0B3D2E;
+  --dark2:#082319;
+  --mid:#1D7A55;
+  --accent:#2ECC8F;
+  --light:#85E5B8;
+  --text:#0A1F14;
+  --muted:#6B9980;
+  --border:#D1EDE0;
+  --border2:#E0F5EC;
+  --card:#fff;
+  --warn-bg:#FFF3E0;
+  --warn-border:#FFB74D;
+  --warn-color:#E65100;
+  --err-bg:#FFEBEE;
+  --err-color:#C62828;
+}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:linear-gradient(180deg,var(--bg),var(--bg2));min-height:100vh;padding:14px;color:var(--text)}
+h1,h2,h3{font-family:'Syne',sans-serif}
+
+/* ── Layout ── */
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+
+/* ── Header ── */
+.hdr{background:linear-gradient(135deg,#082319,#0B3D2E 55%,#0f5038);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;overflow:hidden;box-shadow:0 6px 40px rgba(8,35,25,.3)}
+.hdr-glow{position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(46,204,143,.15) 0%,transparent 65%);pointer-events:none}
+.logo-ring{width:52px;height:52px;border-radius:50%;border:2px solid rgba(133,229,184,.4);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(46,204,143,.15),0 4px 20px rgba(0,0,0,.25);flex-shrink:0;overflow:hidden}
+.logo-ring img{width:100%;height:100%;object-fit:cover}
+.logo-fb{display:none;font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#85E5B8}
+.hdr-title{font-family:'Syne',sans-serif;font-size:20px;color:#fff;letter-spacing:-.3px;line-height:1.2}
+.hdr-sub{font-size:11px;color:#85E5B8;opacity:.8;margin:3px 0 0}
+.badge{display:inline-flex;align-items:center;gap:4px;background:rgba(46,204,143,.12);border:1px solid rgba(46,204,143,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#85E5B8;text-transform:uppercase;margin-top:5px}
+.email-line{font-size:11px;color:rgba(133,229,184,.75);margin-top:3px}
+.stat-boxes{display:flex;gap:7px;position:relative;z-index:1;flex-wrap:wrap}
+.stat-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;text-align:center;min-width:70px;backdrop-filter:blur(4px)}
+.stat-n{font-size:19px;font-weight:700;color:#fff;line-height:1}
+.stat-l{font-size:9px;color:#85E5B8;text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+
+/* ── API Key Banner ── */
+.api-banner{background:#fff;border-radius:14px;box-shadow:0 2px 20px rgba(8,35,25,.07);padding:18px 22px;border:2px solid #FDE68A;position:relative;overflow:hidden}
+.api-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F59E0B,#2ECC8F,#F59E0B)}
+.api-banner h3{font-family:'Syne',sans-serif;font-size:16px;color:var(--dark);margin-bottom:6px}
+.api-banner p{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.65}
+.api-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.api-input-wrap{position:relative;flex:1;min-width:260px}
+.api-input{width:100%;padding:11px 40px 11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;font-family:inherit;background:#F5FBF8;color:var(--text);transition:all .2s}
+.api-input:focus{border-color:var(--mid);box-shadow:0 0 0 3px rgba(29,122,85,.1);outline:none}
+.api-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--muted);padding:4px}
+.api-save-btn{padding:11px 20px;background:linear-gradient(135deg,var(--dark),#134D39);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.api-save-btn:hover{opacity:.9}
+.api-saved{display:flex;align-items:center;gap:8px;background:#F0FDF4;border:1.5px solid #A7F3D0;border-radius:9px;padding:10px 14px;font-size:13px;color:var(--mid);font-weight:600}
+.api-saved button{background:none;border:1.5px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted);font-family:inherit;font-weight:600;margin-left:auto}
+.api-hint{margin-top:8px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.api-hint a{color:var(--mid);font-weight:600;text-decoration:none}
+.api-hint a:hover{text-decoration:underline}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;background:#fff;padding:4px;border-radius:10px;width:fit-content;box-shadow:0 2px 16px rgba(8,35,25,.07)}
+.tab-btn{padding:7px 16px;border-radius:7px;border:none;background:transparent;font-size:12.5px;font-weight:600;color:var(--dark);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;transition:all .15s}
+.tab-btn.active{background:var(--dark);color:#fff}
+.tab-badge{background:#2ECC8F;color:#fff;border-radius:8px;padding:1px 7px;font-size:10px}
+
+/* ── Card ── */
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 20px rgba(8,35,25,.07);padding:24px 26px}
+.card-h{font-family:'Syne',sans-serif;font-size:17px;color:var(--dark);margin-bottom:6px}
+.card-p{font-size:12.5px;color:var(--muted);margin-bottom:18px;line-height:1.65}
+
+/* ── Service pills ── */
+.svc-lbl{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.svc-row{display:flex;flex-wrap:wrap;gap:6px;background:linear-gradient(135deg,#EFF9F4,#E0F5EC);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:18px}
+.svc-pill{padding:4px 11px;background:#fff;border:1px solid #9FD4B5;border-radius:20px;font-size:11.5px;font-weight:500;color:var(--dark);display:flex;align-items:center;gap:4px}
+
+/* ── Form grid ── */
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:640px){.g3{grid-template-columns:1fr}}
+.fld label{font-size:11px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px}
+select{width:100%;padding:10px 34px 10px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;font-family:inherit;background:#F5FBF8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B9980' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 11px center;color:var(--text);appearance:none;-webkit-appearance:none;cursor:pointer;transition:all .2s}
+select:focus{border-color:var(--mid);box-shadow:0 0 0 3px rgba(29,122,85,.1);outline:none}
+
+/* ── Search button ── */
+.search-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--dark),#134D39);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;box-shadow:0 4px 20px rgba(11,61,46,.2);transition:all .2s}
+.search-btn:disabled{opacity:.55;cursor:not-allowed}
+.search-btn:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(11,61,46,.3)}
+
+/* ── Progress ── */
+.prog-wrap{background:var(--border2);border-radius:20px;height:6px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--mid),var(--accent));border-radius:20px;transition:width .5s ease}
+.step-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:12.5px;transition:all .3s}
+.step-item.done{color:var(--mid);font-weight:500}
+.step-item.active{background:#E0F5EC;color:var(--dark);font-weight:600}
+.step-item.pending{opacity:.25;color:var(--text)}
+
+/* ── Spinner ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;display:inline-block}
+.spin-dark{border-color:rgba(11,61,46,.2);border-top-color:var(--dark)}
+
+/* ── Error / info ── */
+.err-box{background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:14px 18px;font-size:13px;color:var(--warn-color);display:flex;gap:8px;align-items:flex-start}
+
+/* ── Lead Card ── */
+.lc{background:#fff;border-radius:14px;box-shadow:0 2px 20px rgba(8,35,25,.07);padding:20px 22px;margin-bottom:12px;animation:slideUp .3s ease}
+.lc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px}
+.lc-avatar{width:40px;height:40px;background:linear-gradient(135deg,var(--dark),var(--mid));border-radius:9px;display:flex;align-items:center;justify-content:center;color:#85E5B8;font-weight:800;font-size:13px;flex-shrink:0}
+.lc-brand{font-weight:700;font-size:15px;color:var(--text)}
+.lc-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.lc-actions{display:flex;gap:5px;flex-wrap:wrap}
+.source-badge{display:inline-flex;align-items:center;gap:4px;background:#F0FDF4;border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:10.5px;color:var(--mid);font-weight:600;margin-bottom:10px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.tag{padding:3px 10px;border-radius:6px;font-size:10.5px;font-weight:600}
+.tag-country{background:#E0F5EC;color:var(--dark)}
+.tag-hot{background:#FFEBEE;color:#C62828}
+.tag-medium{background:#FFF3E0;color:#E65100}
+.tag-low{background:#E3F2FD;color:#1565C0}
+.tag-review{background:#F3E5F5;color:#6A1B9A}
+.amazon-link{display:flex;align-items:center;justify-content:center;gap:7px;background:#FFF8E1;border:1.5px solid #FFD54F;border-radius:9px;padding:9px 14px;font-size:12.5px;font-weight:600;color:#E65100;text-decoration:none;margin-bottom:13px;transition:.15s}
+.amazon-link:hover{opacity:.85}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:13px}
+@media(max-width:500px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:#F8FBF9;border:1px solid var(--border2);border-radius:8px;padding:9px 11px}
+.metric-lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.metric-v{font-size:13px;font-weight:700;color:var(--text)}
+.metric-v.green{color:var(--mid)}
+.metric-v a{color:var(--mid);text-decoration:none}
+.contacts-box{background:#F8FBF9;border:1px solid var(--border2);border-radius:10px;padding:13px 15px;margin-bottom:12px}
+.contacts-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.contacts-title{font-size:10.5px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:.06em}
+.verified-badge{font-size:10px;color:var(--mid);font-weight:600;background:#E0F5EC;border:1px solid #BFE5D0;border-radius:6px;padding:2px 8px}
+.contacts-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+@media(max-width:500px){.contacts-grid{grid-template-columns:1fr}}
+.crow{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid #F0FAF5}
+.crow-icon{font-size:13px;flex-shrink:0}
+.crow-lbl{font-size:10px;color:var(--muted);font-weight:700;width:56px;flex-shrink:0;text-transform:uppercase;letter-spacing:.03em}
+.crow-val{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
+.crow-val a{color:var(--mid);text-decoration:none;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.crow-val span{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:12px}
+.crow-null{color:#CBD5E1;font-style:italic;font-size:11px;font-weight:400}
+.copy-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:2px 6px;font-size:9.5px;cursor:pointer;color:var(--muted);font-family:inherit;font-weight:700;flex-shrink:0;transition:.15s}
+.copy-btn.copied{border-color:#2ECC8F;color:var(--mid)}
+.source-note{margin-top:10px;padding-top:9px;border-top:1px solid var(--border2);font-size:10.5px;color:var(--muted);line-height:1.5}
+.pain-box{background:#FFF3E0;border:1px solid #FFB74D;border-radius:9px;padding:11px 14px;margin-bottom:11px}
+.pain-title{font-size:10.5px;font-weight:700;color:#E65100;text-transform:uppercase;margin-bottom:5px}
+.pain-text{font-size:13px;color:#BF360C;line-height:1.55}
+.services-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.svc-tag{padding:3px 10px;background:#FCE4EC;border:1px solid #F8BBD0;border-radius:20px;font-size:11px;font-weight:600;color:#C62828}
+.svc-rec-lbl{font-size:10.5px;font-weight:700;color:#6B9980;text-transform:uppercase}
+
+/* ── Buttons ── */
+.btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:none;transition:all .15s}
+.btn-o{border:1.5px solid var(--border)!important;background:#fff;color:var(--dark)}
+.btn-p{background:linear-gradient(135deg,var(--dark),#134D39);color:#fff}
+.btn-sh{border:1.5px solid #A5D6A7!important;background:#E8F5E9;color:#1B5E20}
+.btn-d{border:1.5px solid #FFCDD2!important;background:#FFF5F5;color:#C62828}
+.btn:hover{opacity:.85}
+
+/* ── Results header ── */
+.results-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.results-title{font-size:16px;font-weight:700;color:var(--dark)}
+.results-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Guide ── */
+.guide-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+@media(max-width:600px){.guide-grid-3{grid-template-columns:repeat(2,1fr)}}
+.guide-card{background:#F0FDF4;border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.guide-card2{background:#EFF9F4;border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.guide-tips{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:16px 18px;font-size:13px;line-height:1.85;color:#2A5040}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:50px 20px}
+.empty-icon{font-size:44px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:600;color:var(--muted)}
+.empty-sub{font-size:12.5px;color:#94A3B8;margin-top:5px}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--dark);color:#85E5B8;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(8,35,25,.35);z-index:9999;pointer-events:none;white-space:nowrap;animation:slideUp .2s ease;display:none}
+.pchip{display:flex;align-items:center;gap:8px;padding:8px 13px;border:1.5px solid var(--border);border-radius:10px;background:#F8FBF9;cursor:default;transition:all .2s;flex-shrink:0}
+.pchip.active{border-color:var(--accent);background:#E0F5EC;box-shadow:0 0 0 3px rgba(46,204,143,.15)}
+.pchip-icon{font-size:18px;line-height:1}
+.pchip-name{font-size:12px;font-weight:700;color:var(--dark)}
+.pchip-sub{font-size:10px;color:var(--muted);font-family:monospace}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-glow"></div>
+    <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1">
+      <div class="logo-ring">
+        <img src="https://lh3.googleusercontent.com/d/1XqM_V5gU_wCgI2RHgwh3sknWwc3zbccn" alt="Ezuvex"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <span class="logo-fb">EZ</span>
+      </div>
+      <div>
+        <h1 class="hdr-title">Amazon Lead Finder <span style="color:#85E5B8">By Ezuvex</span></h1>
+        <p class="hdr-sub">🤖 Real Scraper · Amazon + Brand Websites · Zero Fake Data</p>
+        <div class="badge" id="ai-badge">✨ Real Data — No API Key Needed</div>
+        <div class="email-line">✉️ evensjuel@gmail.com</div>
+      </div>
+    </div>
+    <div class="stat-boxes">
+      <div class="stat-box"><div class="stat-n" id="stat-found">0</div><div class="stat-l">Found</div></div>
+      <div class="stat-box"><div class="stat-n" id="stat-saved">0</div><div class="stat-l">Saved</div></div>
+      <div class="stat-box"><div class="stat-n" id="stat-comm">$0K</div><div class="stat-l">Est. Comm.</div></div>
+    </div>
+  </header>
+
+  <!-- STATUS BANNER -->
+  <div class="api-banner" id="api-banner" style="border-color:#A7F3D0">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:28px">🤖</span>
+      <div style="flex:1">
+        <h3 style="color:var(--mid)">Real Scraping Engine — No API Key Needed</h3>
+        <p style="margin:4px 0 0">Scrapes live Amazon listings &amp; brand websites. Only real public contact info is shown — never fake.</p>
+      </div>
+      <div id="api-status" style="font-size:12px;font-weight:700;padding:7px 16px;border-radius:20px;background:#E0F5EC;color:var(--mid);border:1px solid #A7F3D0;white-space:nowrap">⏳ Checking server...</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('finder')" id="tab-finder">🔍 Lead Finder</button>
+    <button class="tab-btn" onclick="switchTab('saved')" id="tab-saved">💾 Saved <span class="tab-badge" id="saved-badge" style="display:none">0</span></button>
+    <button class="tab-btn" onclick="switchTab('guide')" id="tab-guide">ℹ️ Guide</button>
+  </div>
+
+  <!-- FINDER TAB -->
+  <div id="pane-finder">
+    <div class="card">
+      <h2 class="card-h">🔍 Find Amazon Sellers — Real Contacts Only</h2>
+      <p class="card-p">AI agent visits real Amazon storefronts, crawls brand websites for emails &amp; phones, searches social media, then identifies the exact Ezuvex service each seller needs most.</p>
+
+      <div class="svc-lbl">🎯 Targeting leads for these Ezuvex services:</div>
+      <div class="svc-row" id="svc-pills"></div>
+
+      <div class="g3">
+        <div class="fld">
+          <label>📂 Product Category</label>
+          <select id="niche-select"><option value="">— Select Category —</option></select>
+        </div>
+        <div class="fld">
+          <label>🌍 Country &amp; Marketplace</label>
+          <select id="country-select"></select>
+        </div>
+        <div class="fld">
+          <label>📊 Number of Leads</label>
+          <select id="count-select">
+            <option value="5">5 Leads</option>
+            <option value="10" selected>10 Leads</option>
+            <option value="15">15 Leads</option>
+            <option value="20">20 Leads</option>
+            <option value="30">30 Leads</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="search-btn" id="search-btn" onclick="startSearch()">
+        🔍 Find Amazon Sellers &amp; Collect All Contacts
+      </button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="card" id="progress-card" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px">
+        <div class="spin spin-dark"></div> AI agent is live-searching…
+      </div>
+      <div id="steps-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:18px"></div>
+      <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:2%"></div></div>
+      <div style="font-size:10.5px;color:var(--muted);text-align:right;margin-top:5px" id="prog-pct">2%</div>
+    </div>
+
+    <!-- ERROR -->
+    <div class="err-box" id="err-box" style="display:none">
+      <span style="font-size:16px">⚠️</span>
+      <div>
+        <span id="err-msg"></span>
+        <br><button onclick="startSearch()" style="margin-top:8px;padding:6px 16px;background:var(--dark);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Retry Search</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results-area" style="display:none;animation:slideUp .35s ease">
+      <div class="card" style="margin-bottom:12px">
+        <div class="results-hdr">
+          <div class="results-title" id="results-title">📊 Results</div>
+          <div class="results-actions">
+            <button class="btn btn-o" onclick="saveAll()">💾 Save All</button>
+            <button class="btn btn-sh" onclick="cpSheets('leads')">📊 Copy → Sheets</button>
+            <button class="btn btn-p" onclick="dlCSV('leads')">📥 CSV</button>
+          </div>
+        </div>
+      </div>
+      <div id="leads-list"></div>
+    </div>
+  </div>
+
+  <!-- SAVED TAB -->
+  <div id="pane-saved" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div class="results-hdr">
+        <div class="results-title" id="saved-title">💾 Saved Leads (0)</div>
+        <div class="results-actions" id="saved-actions" style="display:none">
+          <button class="btn btn-d" onclick="clearAll()">🗑️ Clear All</button>
+          <button class="btn btn-sh" onclick="cpSheets('saved')">📊 Copy → Sheets</button>
+          <button class="btn btn-p" onclick="dlCSV('saved')">📥 CSV</button>
+        </div>
+      </div>
+    </div>
+    <div id="saved-list">
+      <div class="card"><div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No saved leads yet</div><div class="empty-sub">Search for sellers and save the best ones here</div></div></div>
+    </div>
+  </div>
+
+  <!-- GUIDE TAB -->
+  <div id="pane-guide" style="display:none">
+    <div class="card">
+      <h2 style="font-family:'Syne',sans-serif;font-size:20px;color:var(--dark);margin-bottom:10px">📖 Amazon Lead Finder — By Ezuvex</h2>
+      <p style="font-size:13px;color:#2A5040;line-height:1.75;margin-bottom:20px">This AI agent uses <b>Qwen3 Coder 480B A35B (free) via OpenRouter</b> to find real Amazon private-label sellers, visits their websites to collect emails &amp; phones, searches social media, and identifies exactly which <b>Ezuvex service</b> they need most — so every outreach call has a specific, compelling opening.</p>
+      <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:9px">🎯 Ezuvex Services We Target</div>
+      <div class="guide-grid-3" id="guide-services"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:9px">⚙️ How the AI Agent Works</div>
+      <div class="guide-grid-3" id="guide-how"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:9px">💡 Outreach Tips</div>
+      <div class="guide-tips" id="guide-tips"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ─── DATA ─── */
+const SERVICES=[
+  {name:"Complete Brand Launch",icon:"🚀"},
+  {name:"Supplier Sourcing",icon:"📦"},
+  {name:"Listing Creation & Management",icon:"📋"},
+  {name:"SEO & Ranking",icon:"📈"},
+  {name:"PPC Campaigns & Management",icon:"🎯"},
+  {name:"Orders Management",icon:"📊"},
+];
+const COUNTRIES=[
+  {code:"US",name:"United States",domain:"amazon.com",flag:"🇺🇸"},
+  {code:"UK",name:"United Kingdom",domain:"amazon.co.uk",flag:"🇬🇧"},
+  {code:"CA",name:"Canada",domain:"amazon.ca",flag:"🇨🇦"},
+  {code:"DE",name:"Germany",domain:"amazon.de",flag:"🇩🇪"},
+  {code:"FR",name:"France",domain:"amazon.fr",flag:"🇫🇷"},
+  {code:"IT",name:"Italy",domain:"amazon.it",flag:"🇮🇹"},
+  {code:"ES",name:"Spain",domain:"amazon.es",flag:"🇪🇸"},
+  {code:"JP",name:"Japan",domain:"amazon.co.jp",flag:"🇯🇵"},
+  {code:"IN",name:"India",domain:"amazon.in",flag:"🇮🇳"},
+  {code:"AU",name:"Australia",domain:"amazon.com.au",flag:"🇦🇺"},
+  {code:"AE",name:"UAE",domain:"amazon.ae",flag:"🇦🇪"},
+];
+const NICHES=[
+  {g:"🏠 Home & Living",items:["Home Decor","Kitchen & Cooking","Bedroom & Bedding","Bathroom Accessories","Storage & Organization","Smart Home Devices","Garden & Outdoor"]},
+  {g:"💄 Beauty",items:["Skincare & Beauty","Hair Care","Makeup & Cosmetics","Men's Grooming","Fragrance & Perfume"]},
+  {g:"💪 Health & Fitness",items:["Fitness Equipment","Health Supplements","Yoga & Pilates","Sports & Outdoor Gear","Sports Nutrition"]},
+  {g:"🐾 Pets",items:["Dog Products","Cat Products","Pet Food & Treats","Pet Accessories & Grooming"]},
+  {g:"👶 Baby & Kids",items:["Baby Products","Kids Educational Toys","Baby Clothing & Accessories"]},
+  {g:"💼 Office & Tech",items:["Office Accessories","Electronics Accessories","Phone Accessories","Laptop & PC Accessories"]},
+  {g:"🍽️ Food",items:["Organic Food & Snacks","Coffee & Tea","Specialty Diet Food"]},
+  {g:"🚗 Auto & Tools",items:["Car Accessories","Tools & Hardware"]},
+  {g:"👗 Fashion",items:["Jewelry & Accessories","Bags & Luggage","Sunglasses & Eyewear"]},
+];
+const STEPS=[
+  {icon:"⚡",text:"Initializing AI research agent..."},
+  {icon:"🛒",text:"Discovering real Amazon brand storefronts..."},
+  {icon:"🌐",text:"Visiting brand websites — extracting emails & phones..."},
+  {icon:"📱",text:"Scanning Facebook & Instagram pages..."},
+  {icon:"🎯",text:"Matching sellers to Ezuvex services..."},
+  {icon:"✅",text:"Filtering — skipping no-contact leads, retrying if needed..."},
+];
+
+/* ─── STATE ─── */
+let leads=[], saved=[], progInterval=null, stepTimeouts=[], currentStep=0, progVal=2;
+let apiKey='', apiProvider=''; // detected automatically
+
+/* ─── PROVIDER DETECTION ─── */
+// ── Backend API base (auto-detect local vs Vercel) ──
+const API_BASE = (window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')
+  ? 'http://localhost:5000' : '';
+
+function detectProvider(key) {
+  if (!key || key.length < 10) return null;
+  return PROVIDERS.find(p => p.test(key)) || null;
+}
+
+function liveDetect(val) {
+  const badge = document.getElementById('detect-badge');
+  // clear all chips
+  PROVIDERS.forEach(p => {
+    const el = document.getElementById('chip-'+p.id);
+    if (el) el.classList.remove('active');
+  });
+  if (!val || val.length < 8) { badge.innerHTML = ''; return; }
+  const p = detectProvider(val);
+  if (p) {
+    const el = document.getElementById('chip-'+p.id);
+    if (el) el.classList.add('active');
+    badge.innerHTML = `<span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:20px;background:#E0F5EC;color:var(--mid);border:1px solid var(--border);display:inline-flex;align-items:center;gap:5px">${p.icon} Detected: <b>${p.name}</b> &mdash; model: <code style="font-size:11px">${p.model}</code> ✓</span>`;
+  } else {
+    badge.innerHTML = `<span style="font-size:12px;padding:4px 14px;border-radius:20px;background:#FFF3E0;color:#E65100;border:1px solid #FFD54F;display:inline-flex;align-items:center;gap:5px">⚠️ Provider not recognized yet &mdash; keep typing...</span>`;
+  }
+}
+
+/* ─── API CALL HELPERS ─── */
+async function callOpenAICompat(url, key, model, prompt) {
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify({ model, messages: [{ role:'user', content: prompt }], max_tokens: 8000, temperature: 0.5 })
+  });
+  if (!resp.ok) {
+    const e = await resp.json().catch(() => ({}));
+    throw new Error(e?.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data?.choices?.[0]?.message?.content || '';
+}
+
+async function callClaude(key, prompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 8192, messages: [{ role:'user', content: prompt }] })
+  });
+  if (!resp.ok) {
+    const e = await resp.json().catch(() => ({}));
+    throw new Error(e?.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data?.content?.map(b => b.text || '').join('') || '';
+}
+
+async function callGemini(key, prompt) {
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastErr = '';
+  for (const model of models) {
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role:'user', parts:[{ text: prompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 8192 } })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+      const e = await resp.json().catch(() => ({}));
+      lastErr = e?.error?.message || `HTTP ${resp.status}`;
+      if (resp.status === 400 || resp.status === 403) throw new Error(lastErr);
+    } catch(fe) { lastErr = fe.message; }
+  }
+  throw new Error(lastErr);
+}
+
+/* ─── STORAGE ─── */
+function stoLoad(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):[];}catch{return [];}}
+function stoSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch{}}
+
+/* ─── INIT ─── */
+window.addEventListener('DOMContentLoaded',()=>{
+  // Health check
+  fetch(`${API_BASE}/api/health`).then(r=>r.json()).then(d=>{
+    const el=document.getElementById('api-status');
+    if(el) el.innerHTML='✅ Server online — Ready';
+  }).catch(()=>{
+    const el=document.getElementById('api-status');
+    if(el){ el.innerHTML='❌ Server offline'; el.style.background='#FFEBEE'; el.style.color='#C62828'; el.style.borderColor='#FFCDD2'; }
+  });
+  // Load saved leads
+  saved=stoLoad('ez_leads_v4');
+  // Load API key
+  apiKey=localStorage.getItem('ez_api_key')||'';
+  apiProvider=localStorage.getItem('ez_api_provider')||'';
+  if(apiKey){
+    const p=detectProvider(apiKey);
+    if(p){
+      document.getElementById('provider-icon-saved').textContent=p.icon;
+      document.getElementById('provider-label-saved').textContent=`${p.name} connected — model: ${p.model} — AI ready!`;
+    }
+    document.getElementById('api-key-saved-area').style.display='block';
+    document.getElementById('api-key-input-area').style.display='none';
+  }
+  // Build selects
+  buildNiches();
+  buildCountries();
+  buildSvcPills();
+  buildGuide();
+  updateStats();
+  renderSaved();
+});
+
+function buildNiches(){
+  const sel=document.getElementById('niche-select');
+  NICHES.forEach(g=>{
+    const og=document.createElement('optgroup');
+    og.label=g.g;
+    g.items.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;og.appendChild(o);});
+    sel.appendChild(og);
+  });
+}
+function buildCountries(){
+  const sel=document.getElementById('country-select');
+  COUNTRIES.forEach((c,i)=>{
+    const o=document.createElement('option');
+    o.value=i;
+    o.textContent=`${c.flag} ${c.name} (${c.domain})`;
+    sel.appendChild(o);
+  });
+}
+function buildSvcPills(){
+  const row=document.getElementById('svc-pills');
+  SERVICES.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='svc-pill';
+    d.textContent=`${s.icon} ${s.name}`;
+    row.appendChild(d);
+  });
+}
+function buildGuide(){
+  // Services
+  const gs=document.getElementById('guide-services');
+  SERVICES.forEach(s=>{
+    gs.innerHTML+=`<div class="guide-card"><div style="font-size:22px;margin-bottom:6px">${s.icon}</div><div style="font-weight:700;font-size:12.5px;color:var(--dark)">${s.name}</div></div>`;
+  });
+  // How
+  const gh=document.getElementById('guide-how');
+  [
+    {i:"🛒",t:"Amazon Discovery",d:"Searches real brand storefronts on Amazon in your niche & country."},
+    {i:"🌐",t:"Website Crawl",d:"Finds brand website, visits contact/about page — extracts email & phone."},
+    {i:"📱",t:"Social Scan",d:"Searches Facebook and Instagram for the brand's public pages."},
+    {i:"🔗",t:"Real Storefront Link",d:"Builds the exact Amazon storefront URL or a targeted brand search link."},
+    {i:"🎯",t:"Service Matching",d:"Analyzes each seller's presence to find the Ezuvex service they need most."},
+    {i:"📊",t:"Google Sheets Export",d:"One click copies all data — paste directly in Google Sheets with Ctrl+V."},
+  ].forEach(f=>{
+    gh.innerHTML+=`<div class="guide-card2"><div style="font-size:22px;margin-bottom:6px">${f.i}</div><div style="font-weight:700;font-size:12.5px;color:var(--dark);margin-bottom:4px">${f.t}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.5">${f.d}</div></div>`;
+  });
+  // Tips
+  const gt=document.getElementById('guide-tips');
+  [
+    'Use the "Why They Need Help" field as your cold outreach opening line',
+    'Sellers with Facebook/Instagram = DM outreach — highest response rate',
+    'Email + Phone = direct call — best for closing deals fast',
+    '🔥 Hot priority sellers (2000+ reviews) have budget and urgency',
+    '⚠️ Amazon hides seller emails — AI finds them via brand websites & social media',
+    'If a contact shows "Not found" — the seller has no public info. This is accurate, not a bug.',
+  ].forEach(t=>{gt.innerHTML+=`<div style="margin-bottom:4px">• ${t}</div>`;});
+}
+
+/* ─── API KEY ─── */
+function toggleKeyVis(){
+  const inp=document.getElementById('api-key-input');
+  inp.type=inp.type==='password'?'text':'password';
+}
+function saveApiKey(){ return; // replaced by backend
+  if(false){
+  const v=document.getElementById('api-key-input').value.trim();
+  if(!v||v.length<10){showToast('⚠️ Please paste a valid API key');return;}
+  const p=detectProvider(v);
+  if(!p){showToast('⚠️ OpenRouter key must start with sk-or-v1-');return;}
+  apiKey=v; apiProvider=p.id;
+  localStorage.setItem('ez_api_key',v);
+  localStorage.setItem('ez_api_provider',p.id);
+  document.getElementById('provider-icon-saved').textContent=p.icon;
+  document.getElementById('provider-label-saved').textContent=`${p.name} connected — model: ${p.model} — AI ready!`;
+  document.getElementById('api-key-saved-area').style.display='block';
+  document.getElementById('api-key-input-area').style.display='none';
+  showToast(`✅ ${p.name} connected!`);
+}
+function clearApiKey(){
+  apiKey=''; apiProvider='';
+  localStorage.removeItem('ez_api_key');
+  localStorage.removeItem('ez_api_provider');
+  document.getElementById('api-key-saved-area').style.display='none';
+  document.getElementById('api-key-input-area').style.display='block';
+  document.getElementById('api-key-input').value='';
+  document.getElementById('detect-badge').innerHTML='';
+  PROVIDERS.forEach(p=>{const el=document.getElementById('chip-'+p.id);if(el)el.classList.remove('active');});
+}
+
+/* ─── TABS ─── */
+function switchTab(id){
+  ['finder','saved','guide'].forEach(t=>{
+    document.getElementById(`pane-${t}`).style.display=t===id?'block':'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active',t===id);
+  });
+}
+
+/* ─── BACKEND API CALL ─── */
+async function runSearch({niche,country,count}){
+  const resp = await fetch(`${API_BASE}/api/search`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({niche, country: country.code, count})
+  });
+  if(!resp.ok){
+    const err = await resp.json().catch(()=>({}));
+    throw new Error(err.error || `Server error ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.leads || [];
+}
+
+/* ─── SEARCH FLOW ─── */
+async function startSearch(){
+  const niche=document.getElementById('niche-select').value;
+  const cIdx=+document.getElementById('country-select').value;
+  const count=+document.getElementById('count-select').value;
+  const country=COUNTRIES[cIdx];
+
+  if(!niche){showToast('⚠️ Select a product category first!');return;}
+  // No API key needed — backend handles everything
+
+  // Reset UI
+  leads=[];
+  document.getElementById('err-box').style.display='none';
+  document.getElementById('results-area').style.display='none';
+  document.getElementById('leads-list').innerHTML='';
+  document.getElementById('search-btn').disabled=true;
+  document.getElementById('search-btn').innerHTML='<div class="spin"></div> Scraping Amazon & brand websites...';
+  document.getElementById('progress-card').style.display='block';
+  currentStep=0; progVal=2;
+  document.getElementById('prog-bar').style.width='2%';
+  document.getElementById('prog-pct').textContent='2%';
+  renderSteps(0);
+
+  clearInterval(progInterval);
+  progInterval=setInterval(()=>{
+    if(progVal<70)progVal+=0.45;
+    else if(progVal<85)progVal+=0.18;
+    else if(progVal<93)progVal+=0.06;
+    else progVal+=0.01;
+    document.getElementById('prog-bar').style.width=progVal+'%';
+    document.getElementById('prog-pct').textContent=Math.round(progVal)+'%';
+  },500);
+
+  stepTimeouts.forEach(clearTimeout);
+  stepTimeouts=[
+    setTimeout(()=>renderSteps(1),1400),
+    setTimeout(()=>renderSteps(2),5500),
+    setTimeout(()=>renderSteps(3),12000),
+    setTimeout(()=>renderSteps(4),18000),
+    setTimeout(()=>renderSteps(5),23000),
+  ];
+
+  try{
+    const ls=await runSearch({niche,country,count});
+    clearInterval(progInterval);
+    stepTimeouts.forEach(clearTimeout);
+    progVal=100;
+    document.getElementById('prog-bar').style.width='100%';
+    document.getElementById('prog-pct').textContent='100%';
+    renderSteps(6);
+    leads=ls;
+    setTimeout(()=>{
+      document.getElementById('progress-card').style.display='none';
+      document.getElementById('search-btn').disabled=false;
+      document.getElementById('search-btn').innerHTML='🔍 Find Amazon Sellers &amp; Collect All Contacts';
+      const foundNote = ls.length < count ? ` (${ls.length} found with contacts — max available)` : '';
+      document.getElementById('results-title').textContent=`📊 ${ls.length} verified ${niche} sellers with real contacts — ${country.flag} ${country.name}${foundNote}`;
+      document.getElementById('results-area').style.display='block';
+      renderLeads(ls,'leads-list',true);
+      document.getElementById('results-area').scrollIntoView({behavior:'smooth'});
+      updateStats();
+    },400);
+  }catch(e){
+    clearInterval(progInterval);
+    stepTimeouts.forEach(clearTimeout);
+    document.getElementById('progress-card').style.display='none';
+    document.getElementById('search-btn').disabled=false;
+    document.getElementById('search-btn').innerHTML='🔍 Find Amazon Sellers &amp; Collect All Contacts';
+    document.getElementById('err-box').style.display='flex';
+    document.getElementById('err-msg').textContent=e.message||'Search failed. Please try again.';
+  }
+}
+
+function renderSteps(activeStep){
+  const list=document.getElementById('steps-list');
+  list.innerHTML=STEPS.map((s,i)=>{
+    const done=i<activeStep,active=i===activeStep;
+    return `<div class="step-item ${done?'done':active?'active':'pending'}">
+      <span style="font-size:15px;flex-shrink:0">${done?'✅':s.icon}</span>${s.text}
+    </div>`;
+  }).join('');
+}
+
+/* ─── LEAD RENDERING ─── */
+const fmtRev=n=>n?`$${Math.round(n/1000)}K/mo`:'N/A';
+const fmtSpend=n=>n?`$${Number(n).toLocaleString()}/mo`:'N/A';
+const fmtComm=n=>n?`$${Math.round(n*.3).toLocaleString()}/mo`:'—';
+const igFull=v=>!v?null:v.startsWith('http')?v:`https://instagram.com/${v.replace('@','')}`;
+const fbFull=v=>!v?null:v.startsWith('http')?v:`https://facebook.com/${v}`;
+const siteHost=v=>{try{return new URL(v.startsWith('http')?v:`https://${v}`).hostname;}catch{return v;}};
+const storefront=l=>{if(l.storefrontURL&&l.storefrontURL.length>20)return l.storefrontURL;var b=encodeURIComponent(l.brand||'');return 'https://www.'+(l.domain||'amazon.com')+'/s?k='+b+'&rh=p_4%3A'+b;};
+const priStyle=p=>p==='Hot'?{cls:'tag-hot',icon:'🔥'}:p==='Medium'?{cls:'tag-medium',icon:'🟡'}:{cls:'tag-low',icon:'🔵'};
+
+function renderLeads(list,containerId,showSave){
+  const el=document.getElementById(containerId);
+  if(!list.length){
+    el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No leads here</div></div></div>`;
+    return;
+  }
+  el.innerHTML=list.map(l=>leadCardHTML(l,showSave)).join('');
+}
+
+function leadCardHTML(l,showSave){
+  const pc=priStyle(l.priority);
+  const flag=COUNTRIES.find(c=>c.domain===l.domain)?.flag||'🌐';
+  const sUrl=storefront(l);
+  const initials=(l.initials||(l.brand||'XX').slice(0,2)).toUpperCase();
+  const isSaved=saved.some(s=>s._id===l._id);
+
+  const crow=(icon,lbl,val,href,color,cpVal)=>{
+    const display=val||null;
+    const target=cpVal||val;
+    if(!display)return `<div class="crow"><span class="crow-icon">${icon}</span><span class="crow-lbl">${lbl}</span><span class="crow-null">Not found on website</span></div>`;
+    return `<div class="crow"><span class="crow-icon">${icon}</span><span class="crow-lbl">${lbl}</span>
+      <div class="crow-val">
+        ${href?`<a href="${href}" target="_blank" rel="noopener" style="color:${color||'var(--mid)'}">${display}</a>`:`<span>${display}</span>`}
+        ${target?`<button class="copy-btn" onclick="cpVal(this,'${escQ(target)}')" data-val="${escQ(target)}">Copy</button>`:''}
+      </div></div>`;
+  };
+
+  return `<div class="lc" id="lc-${l._id}">
+    <div class="lc-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="lc-avatar">${initials}</div>
+        <div>
+          <div class="lc-brand">${esc(l.brand||'—')}</div>
+          <div class="lc-sub">${esc(l.niche||'—')} · ${esc(l.country||'—')}</div>
+        </div>
+      </div>
+      <div class="lc-actions">
+        ${showSave&&!isSaved?`<button class="btn btn-o" onclick="saveLead(${l._id})">💾 Save</button>`:''}
+        ${isSaved&&showSave?`<span style="font-size:11.5px;color:var(--mid);font-weight:600;padding:7px 8px">✅ Saved</span>`:''}
+        ${!showSave?`<button class="btn btn-d" onclick="removeLead(${l._id})">🗑️</button>`:''}
+      </div>
+    </div>
+
+    <div class="source-badge">✅ Source: ${esc(l.dataSource||'Amazon + AI Research')}</div>
+
+    <div class="tags">
+      <span class="tag tag-country">${flag} ${esc(l.country)} · ${esc(l.domain)}</span>
+      <span class="tag ${pc.cls}">${pc.icon} ${esc(l.priority||'Unknown')}</span>
+      ${l.reviewCount?`<span class="tag tag-review">⭐ ${Number(l.reviewCount).toLocaleString()} reviews</span>`:''}
+    </div>
+
+    <a href="${esc(sUrl)}" target="_blank" rel="noopener" class="amazon-link">🛒 View Amazon Storefront / Brand Search ↗</a>
+
+    <div class="metrics">
+      <div class="metric"><div class="metric-lbl">Est. Revenue</div><div class="metric-v">${fmtRev(l.monthlyRevenue)}</div></div>
+      <div class="metric"><div class="metric-lbl">Est. PPC Spend</div><div class="metric-v">${fmtSpend(l.monthlySpend)}</div></div>
+      <div class="metric"><div class="metric-lbl">Reviews · Rating</div><div class="metric-v">${l.reviewCount?Number(l.reviewCount).toLocaleString():'—'} · ${l.rating?'⭐'+l.rating:'—'}</div></div>
+      <div class="metric"><div class="metric-lbl">Top ASIN</div><div class="metric-v">${l.topASIN?`<a href="https://www.${l.domain}/dp/${l.topASIN}" target="_blank">${l.topASIN}</a>`:'N/A'}</div></div>
+      <div class="metric"><div class="metric-lbl">Marketplace</div><div class="metric-v"><a href="https://www.${l.domain}" target="_blank" class="green">${esc(l.domain)}</a></div></div>
+      <div class="metric"><div class="metric-lbl">Est. Commission 30%</div><div class="metric-v green">${fmtComm(l.monthlySpend)}</div></div>
+    </div>
+
+    <div class="contacts-box">
+      <div class="contacts-head">
+        <div class="contacts-title">📬 Contact Information</div>
+        <div class="verified-badge">✅ Verified from website &amp; search</div>
+      </div>
+      <div class="contacts-grid">
+        ${crow('📧','Email',l.email,l.email?`mailto:${l.email}`:null,'var(--mid)',l.email)}
+        ${crow('📞','Phone',l.phone,l.phone?`tel:${l.phone}`:null,'var(--mid)',l.phone)}
+        ${crow('🌐','Website',l.website?siteHost(l.website):null,l.website,'var(--mid)',l.website)}
+        ${crow('👤','Contact',l.contactName,null,'var(--mid)',l.contactName)}
+        ${crow('📘','Facebook',l.facebook?'Facebook Page ↗':null,fbFull(l.facebook),'#1877F2',l.facebook)}
+        ${crow('📸','Instagram',l.instagram?l.instagram.replace('https://instagram.com/','@'):null,igFull(l.instagram),'#E1306C',l.instagram)}
+        ${crow('💼','LinkedIn',l.linkedin?'LinkedIn ↗':null,l.linkedin,'#0A66C2',l.linkedin)}
+      </div>
+      ${(!l.email&&!l.phone&&!l.facebook&&!l.instagram&&!l.website)?`<div style="margin-top:8px;padding:8px 12px;background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;font-size:12px;color:#E65100">⚠️ No public contact info found for this brand — try searching their name + "contact" on Google or LinkedIn.</div>`:''}
+      <div class="source-note"><span style="font-weight:600;color:var(--dark)">🔍 Researched from:</span> ${esc(l.dataSource||'Amazon storefront + brand website + social search')}</div>
+    </div>
+
+    ${l.painPoint?`<div class="pain-box"><div class="pain-title">⚠️ Why They Need Ezuvex Help</div><div class="pain-text">${esc(l.painPoint)}</div></div>`:''}
+
+    ${(l.recommendedServices||[]).length?`<div class="services-row"><span class="svc-rec-lbl">Recommended:</span>${(l.recommendedServices||[]).map(s=>`<span class="svc-tag">${esc(s)}</span>`).join('')}</div>`:''}
+  </div>`;
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escQ(s){return String(s||'').replace(/'/g,"\\'");}
+
+/* ─── COPY ─── */
+function cpVal(btn,val){
+  navigator.clipboard.writeText(val).then(()=>{
+    btn.textContent='✓';btn.classList.add('copied');
+    showToast('✅ Copied!');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+  }).catch(()=>showToast('Copy failed'));
+}
+
+/* ─── SAVE / REMOVE ─── */
+function saveLead(id){
+  const l=leads.find(x=>x._id===id);
+  if(!l)return;
+  if(!saved.some(s=>s._id===id)){saved=[...saved,l];stoSave('ez_leads_v4',saved);}
+  showToast('✅ Lead saved!');
+  // Re-render to update save button
+  renderLeads(leads,'leads-list',true);
+  updateStats();renderSaved();
+}
+function saveAll(){
+  const news=leads.filter(l=>!saved.some(s=>s._id===l._id));
+  if(!news.length){showToast('All already saved!');return;}
+  saved=[...saved,...news];stoSave('ez_leads_v4',saved);
+  showToast(`✅ ${news.length} leads saved!`);
+  renderLeads(leads,'leads-list',true);
+  updateStats();renderSaved();
+}
+function removeLead(id){
+  saved=saved.filter(l=>l._id!==id);stoSave('ez_leads_v4',saved);
+  showToast('Removed.');updateStats();renderSaved();
+}
+function clearAll(){
+  if(!confirm('Clear all saved leads?'))return;
+  saved=[];stoSave('ez_leads_v4',[]);
+  showToast('Cleared.');updateStats();renderSaved();
+}
+function renderSaved(){
+  document.getElementById('saved-title').textContent=`💾 Saved Leads (${saved.length})`;
+  document.getElementById('saved-badge').textContent=saved.length;
+  document.getElementById('saved-badge').style.display=saved.length?'inline':'none';
+  document.getElementById('saved-actions').style.display=saved.length?'flex':'none';
+  if(!saved.length){
+    document.getElementById('saved-list').innerHTML='<div class="card"><div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No saved leads yet</div><div class="empty-sub">Search for sellers and save the best ones here</div></div></div>';
+  }else{
+    renderLeads(saved,'saved-list',false);
+  }
+}
+
+/* ─── STATS ─── */
+function updateStats(){
+  document.getElementById('stat-found').textContent=leads.length;
+  document.getElementById('stat-saved').textContent=saved.length;
+  const comm=saved.reduce((s,l)=>s+Math.round((l.monthlySpend||0)*.3),0);
+  document.getElementById('stat-comm').textContent=`$${(comm/1000).toFixed(0)}K`;
+}
+
+/* ─── EXPORT ─── */
+function toCSV(list){
+  const H=["Brand","Niche","Country","Domain","Contact Name","Email","Phone","Website","Facebook","Instagram","LinkedIn","Revenue/mo","PPC Spend/mo","Reviews","Rating","ASIN","Storefront URL","Priority","Pain Point","Services","Source"];
+  const R=list.map(l=>[l.brand,l.niche,l.country,l.domain,l.contactName||'',l.email||'',l.phone||'',l.website||'',l.facebook||'',l.instagram||'',l.linkedin||'',l.monthlyRevenue?`$${Math.round(l.monthlyRevenue/1000)}K`:'',l.monthlySpend?`$${l.monthlySpend}`:'',l.reviewCount||'',l.rating||'',l.topASIN||'',storefront(l),l.priority||'',l.painPoint||'',(l.recommendedServices||[]).join('; '),l.dataSource||'']);
+  return[H,...R].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+}
+function toTSV(list){
+  const H=["Brand","Niche","Country","Website","Email","Phone","Facebook","Instagram","Revenue","PPC Spend","Reviews","Rating","Priority","Services","Storefront","Pain Point"];
+  const R=list.map(l=>[l.brand,l.niche,l.country,l.website||'',l.email||'',l.phone||'',l.facebook||'',l.instagram||'',l.monthlyRevenue?`$${Math.round(l.monthlyRevenue/1000)}K`:'',l.monthlySpend?`$${l.monthlySpend}`:'',l.reviewCount||'',l.rating||'',l.priority||'',(l.recommendedServices||[]).join('; '),storefront(l),l.painPoint||'']);
+  return[H,...R].map(r=>r.map(v=>String(v).replace(/\t/g,' ')).join('\t')).join('\n');
+}
+function dlCSV(source){
+  const list=source==='leads'?leads:saved;
+  if(!list.length){showToast('No leads!');return;}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+toCSV(list)],{type:'text/csv;charset=utf-8;'}));
+  a.download=`ezuvex_leads_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();showToast('✅ CSV downloaded!');
+}
+function cpSheets(source){
+  const list=source==='leads'?leads:saved;
+  if(!list.length){showToast('No leads!');return;}
+  navigator.clipboard.writeText(toTSV(list)).then(()=>showToast('✅ Copied! Paste with Ctrl+V in Google Sheets')).catch(()=>showToast('Copy failed'));
+}
+
+/* ─── TOAST ─── */
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.style.display='none',3200);
+}
+</script>
+</body>
+</html>
